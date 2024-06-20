@@ -6,7 +6,7 @@ export type UseTakeVideo = {
   start(): void;
   pause(): void;
   resume(): void;
-  stop(): Promise<Blob | null>;
+  stop(): Promise<Blob | undefined>;
 }
 
 export const useTakeVideo = (controller: CameraController, mime = "video/webm"): UseTakeVideo => {
@@ -23,8 +23,9 @@ export const useTakeVideo = (controller: CameraController, mime = "video/webm"):
     const device = controller.device.selected
     if(device) {
       let stream = v
-      if(/front|user|face/gi.test(device.label)) {
+      if(controller.video.value?.style.transform === 'scaleX(-1)') {
         const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
         canvas.style.display = 'none';
         document.body.appendChild(canvas);
 
@@ -32,14 +33,14 @@ export const useTakeVideo = (controller: CameraController, mime = "video/webm"):
         video.addEventListener('loadedmetadata', () => {
           canvas.width = video.videoWidth;
           canvas.height = video.videoHeight;
-          const context = canvas.getContext('2d');
-          if (!context) return;
   
           function draw() {
-            context!.save();
-            context!.scale(-1, 1);
-            context!.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
-            context!.restore();
+            if (context) {
+              context.save();
+              context.scale(-1, 1);
+              context.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
+              context.restore();
+            }
             requestAnimationFrame(draw);
           }
           draw();
@@ -70,13 +71,13 @@ export const useTakeVideo = (controller: CameraController, mime = "video/webm"):
       state.value = 'recording'
     },
     stop() {
-      if (!recorder.value) return Promise.resolve(null)
+      if (!recorder.value) return Promise.resolve(undefined)
 
-      return new Promise<Blob | null>((resolve) => {
+      return new Promise<Blob | undefined>((resolve) => {
         recorder.value!.ondataavailable = (e) => {
           if (e.data && e.data.size > 0) {
             resolve(e.data)
-          } else resolve(null)
+          } else resolve(undefined)
           recorder.value!.ondataavailable = null
         }
         recorder.value!.stop()

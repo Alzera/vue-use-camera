@@ -9,8 +9,6 @@ declare global {
 
 export type CameraState = 'starting' | 'display' | 'stopping' | 'idle'
 
-// export type CameraFacingMode = 'user' | 'environment'
-
 const videoReady = (video: HTMLVideoElement, delay: number) => new Promise((resolve) => {
   const check = () => {
     if (video.readyState === video.HAVE_ENOUGH_DATA) {
@@ -30,14 +28,68 @@ const requestCameraPermission = async (constraints: MediaStreamConstraints) => {
   await getUserMedia(constraints).then(s => s.getTracks().forEach(i => i.stop()))
 }
 
-// const getFacingModePattern = (facingMode: CameraFacingMode) =>
-//   facingMode === 'environment' ? /rear|back|environment/gi : /front|user|face/gi
+const environmentCameraKeywords: string[] = [
+  "rear",
+  "back",
+  "rück",
+  "arrière",
+  "trasera",
+  "trás",
+  "traseira",
+  "posteriore",
+  "后面",
+  "後面",
+  "背面",
+  "后置", // alternative
+  "後置", // alternative
+  "背置", // alternative
+  "задней",
+  "الخلفية",
+  "후",
+  "arka",
+  "achterzijde",
+  "หลัง",
+  "baksidan",
+  "bagside",
+  "sau",
+  "bak",
+  "tylny",
+  "takakamera",
+  "belakang",
+  "אחורית",
+  "πίσω",
+  "spate",
+  "hátsó",
+  "zadní",
+  "darrere",
+  "zadná",
+  "задня",
+  "stražnja",
+  "belakang",
+  "बैक"
+];
+function isEnvironmentCamera(label: string): boolean {
+  const lowercaseLabel: string = label.toLowerCase();
+
+  return environmentCameraKeywords.some(keyword => {
+    return lowercaseLabel.includes(keyword);
+  });
+}
 
 export const handleStream = async (
   video: HTMLVideoElement,
   stream: MediaStream,
   info: MediaDeviceInfo
 ) => {
+  const [track] = stream.getVideoTracks()
+
+  const settings = track.getSettings();
+  const isEnvironment = (
+    settings != null 
+    && settings.facingMode === "environment"
+  ) || isEnvironmentCamera(info.label);
+  video.style.transform = isEnvironment ? "" : 'scaleX(-1)'
+
   if (video.srcObject !== undefined) {
     video.srcObject = stream
   } else if (video.mozSrcObject !== undefined) {
@@ -52,14 +104,11 @@ export const handleStream = async (
 
   await eventOn(video, 'canplay')
 
-  const isFrontCamera = /front|user|face/gi.test(info.label)
-  video.style.transform = isFrontCamera ? 'scaleX(-1)' : ''
-
   await video.play()
   await videoReady(video, 750)
 
   await timeout(500)
-  const [track] = stream.getVideoTracks()
+
   return track?.getCapabilities?.() ?? {}
 }
 
@@ -95,10 +144,12 @@ export const getDevices = (constraints: MediaStreamConstraints) =>
     .then(ds => {
       ds = ds.filter(({ kind }) => kind === 'videoinput')
 
-      // if (facingMode) {
-      //   const pattern = getFacingModePattern(facingMode);
-      //   ds = ds.filter(({ label }) => pattern.test(label))
-      // }
+      if (typeof constraints.video === 'object' && typeof constraints.video.facingMode === 'string') {
+        const pattern = constraints.video.facingMode === 'user' 
+          ? (label: string) => !isEnvironmentCamera(label) 
+          : isEnvironmentCamera
+        ds = ds.filter(({ label }) => pattern(label))
+      }
 
       return ds
     })

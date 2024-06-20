@@ -6,8 +6,8 @@ const controller = useCamera({
 const photoController = useTakePhoto(controller)
 const videoController = useTakeVideo(controller)
 
-const resultPhoto = ref<string | null>()
-const resultVideo = ref<Blob | null>()
+const resultPhoto = ref<string>()
+const resultVideo = ref<Blob>()
 
 const selectedChange = (e: Event) => {
   if (!e.target) return;
@@ -21,12 +21,13 @@ const createUrl = (blob: Blob) => {
 
 const takePhoto = async () => {
   resultPhoto.value = await photoController.takeAsDataURL()
-  if(!resultPhoto.value) resultVideo.value = null
+  console.log("Ale resultPhoto", resultPhoto.value)
+  if(resultPhoto.value) resultVideo.value = undefined
 }
 
 const takeVideo = async () => {
   resultVideo.value = await videoController.stop()
-  if(!resultVideo.value) resultPhoto.value = null
+  if(resultVideo.value) resultPhoto.value = undefined
 }
 </script>
 
