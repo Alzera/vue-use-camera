@@ -15,32 +15,39 @@ export const useTakeVideo = (controller: CameraController, mime = "video/webm"):
 
   watch(() => controller.camera.stream, (v) => {
     if (!v) return
-    // video.addEventListener('loadedmetadata', () => {
-    //     canvas.width = video.videoWidth;
-    //     canvas.height = video.videoHeight;
-    //     const context = canvas.getContext('2d');
+    if (!MediaRecorder.isTypeSupported(mime)) {
+      console.warn('Codec not supported: ', mime);
+      return
+    }
 
-    //     // Draw the flipped video frames onto the canvas
-    //     function draw() {
-    //         context.save();
-    //         context.scale(-1, 1);
-    //         context.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
-    //         context.restore();
-    //         requestAnimationFrame(draw);
-    //     }
-    //     draw();
-    // });
-    // const canvasStream = canvas.captureStream(30);
+    const device = controller.device.selected
+    if(device) {
+      let stream = v
+      if(/front|user|face/gi.test(device.label)) {
+        const canvas = document.createElement('canvas');
+        canvas.style.display = 'none';
+        document.body.appendChild(canvas);
 
-    // const isCodecSupported = MediaRecorder.isTypeSupported(
-    //   recording.mimeType
-    // );
-
-    // if (!isCodecSupported) {
-    //   console.warn('Codec not supported: ', recording.mimeType);
-    //   handleError('startRecording', ERROR_MESSAGES.CODEC_NOT_SUPPORTED);
-    // }
-    recorder.value = new MediaRecorder(v, { mimeType: mime })
+        const video = controller.video.value!
+        video.addEventListener('loadedmetadata', () => {
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          const context = canvas.getContext('2d');
+          if (!context) return;
+  
+          function draw() {
+            context!.save();
+            context!.scale(-1, 1);
+            context!.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
+            context!.restore();
+            requestAnimationFrame(draw);
+          }
+          draw();
+        })
+        stream = canvas.captureStream(30);
+      }
+      recorder.value = new MediaRecorder(stream, { mimeType: mime })
+    }
   })
 
   return {

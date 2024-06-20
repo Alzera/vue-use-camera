@@ -12,7 +12,7 @@ export type CameraController = {
   };
   readonly device: {
     list: MediaDeviceInfo[];
-    selected: string | undefined;
+    selected: MediaDeviceInfo | undefined;
     lastSelected: string | undefined;
   };
 }
@@ -43,7 +43,7 @@ export const useCamera = ({
   const capabilities = ref<MediaTrackCapabilities>()
   const cameraState = ref<CameraState>("idle")
   const devices = ref<MediaDeviceInfo[]>([])
-  const selectedDevice = ref<string | undefined>();
+  const selectedDevice = ref<MediaDeviceInfo | undefined>();
   const lastDeviceId = useLocalStorage<string>("last-device-id", null)
 
   const error = async (e: any) => {
@@ -102,9 +102,13 @@ export const useCamera = ({
     getDevices(constraints)
       .then(ds => {
         devices.value = ds
-        if (autoStart) {
-          const deviceId = useLastDeviceId && lastDeviceId.value ? lastDeviceId.value : ds[0].deviceId
-          selectedDevice.value = deviceId
+        if (autoStart && ds.length) {
+          const device = ds[0]
+          if(useLastDeviceId && lastDeviceId.value) {
+            const index = devices.value.findIndex(i => i.deviceId == lastDeviceId.value)
+            if (index >= 0) selectedDevice.value = devices.value[index]
+          }
+          selectedDevice.value = device
         }
       })
       .catch(error)
@@ -115,10 +119,10 @@ export const useCamera = ({
   watch(() => selectedDevice.value, (v, _, onCleanup) => {
     if (!v) return
 
-    const index = devices.value.findIndex(i => i.deviceId == v)
+    const index = devices.value.findIndex(i => i.deviceId == v.deviceId)
     if (index < 0) return
 
-    lastDeviceId.value = v
+    lastDeviceId.value = v.deviceId
     const selected = devices.value[index]
 
     stop().then(_ => start(selected))
@@ -130,8 +134,8 @@ export const useCamera = ({
     if (!autoPause) return
     if (v == 'hidden') {
       stop()
-    } else {
-      const index = devices.value.findIndex(i => i.deviceId == selectedDevice.value)
+    } else if (selectedDevice.value) {
+      const index = devices.value.findIndex(i => i.deviceId == selectedDevice.value!.deviceId)
       if (index < 0) return
       const selected = devices.value[index]
       start(selected)
@@ -154,7 +158,7 @@ export const useCamera = ({
         get list() { return devices.value },
         set list(target: MediaDeviceInfo[]) { devices.value = target },
         get selected() { return selectedDevice.value },
-        set selected(target: string | undefined) { selectedDevice.value = target },
+        set selected(target: MediaDeviceInfo | undefined) { selectedDevice.value = target },
         get lastSelected() { return lastDeviceId.value },
         set lastSelected(target: string | undefined) { lastDeviceId.value = target },
       }

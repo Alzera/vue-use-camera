@@ -12,7 +12,7 @@ const resultVideo = ref<Blob | null>()
 const selectedChange = (e: Event) => {
   if (!e.target) return;
   const target = e.target as HTMLInputElement
-  controller.device.selected = target.value
+  controller.device.selected = controller.device.list.find((d) => d.deviceId === target.value)
 }
 
 const createUrl = (blob: Blob) => {
@@ -33,7 +33,7 @@ const takeVideo = async () => {
 <template>
   <div id="camera-preview">
     <video :ref="controller.video" preload="none" playsInline muted style="max-width: 500px;"></video><br/>
-    <select :value="controller.device.selected" @change="selectedChange">
+    <select :value="controller.device.selected?.deviceId" @change="selectedChange">
       <option v-for="(d, i) in controller.device.list" :key="i" :value="d.deviceId">{{ d.label }}</option>
     </select>
     <button @click="takePhoto">Take Photo</button>
