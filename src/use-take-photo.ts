@@ -1,7 +1,6 @@
-import { useScreenOrientation } from "@vueuse/core";
+// import { useScreenOrientation } from "@vueuse/core";
 import { onMounted, ref, onUnmounted } from "vue";
 import { type CameraController } from "./use-camera";
-// import { frontLabelRegex } from "./utils/camera";
 
 export type UseTakePhoto = {
   takeAsBlob(): Promise<Blob | undefined>;
@@ -9,10 +8,9 @@ export type UseTakePhoto = {
 }
 
 // TODO move to ImageCapture when it's available on all major browsers. https://caniuse.com/imagecapture
-// TODO check landscape mode on video
 export const useTakePhoto = (controller: CameraController, mime = "image/png"): UseTakePhoto => {
   const canvas = ref<HTMLCanvasElement>();
-  const { angle } = useScreenOrientation();
+  // const { angle } = useScreenOrientation();
 
   onMounted(() => {
     const c = document.createElement('canvas');
@@ -36,23 +34,22 @@ export const useTakePhoto = (controller: CameraController, mime = "image/png"): 
 
     const width = canvas.value.width;
     const height = canvas.value.height;
-    const degrees = angle.value;
-    if (degrees === 90 || degrees === 270) {
-      canvas.value.width = height;
-      canvas.value.height = width;
-    }
-    // context!.save();
-    if (degrees === 90) context.translate(height, 0);
-    else if (degrees === 180) context.translate(width, height);
-    else if (degrees === 270) context.translate(0, width);
-    else context.translate(0, 0);
-    context.rotate(degrees * Math.PI / 180);
+    // const degrees = angle.value;
+    // if (degrees === 90 || degrees === 270) {
+    //   canvas.value.width = height;
+    //   canvas.value.height = width;
+    // }
+    // if (degrees === 90) context.translate(height, 0);
+    // else if (degrees === 180) context.translate(width, height);
+    // else if (degrees === 270) context.translate(0, width);
+    // else context.translate(0, 0);
+    // context.rotate(degrees * Math.PI / 180);
 
     if(video.style.transform === 'scaleX(-1)') {
       context.translate(canvas.value.width, 0)
       context.scale(-1, 1);
     }
-    context.drawImage(video, -video.width / 2, -video.width / 2, width, height);
+    context.drawImage(video, -video.width / 2, -video.height / 2, width, height);
 
     // context!.restore();
   }
