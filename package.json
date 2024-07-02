@@ -1,13 +1,22 @@
 {
   "name": "@alzera/vue-use-camera",
   "private": false,
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Camera composable for Vue apps",
   "license": "MIT",
   "author": "Alzera Cita <alzeracita23@gmail.com>",
   "keywords": [
     "vue",
-    "camera"
+    "camera",
+    "take photo",
+    "take picture",
+    "photo",
+    "picture",
+    "composable",
+    "vue-use-camera",
+    "take video",
+    "record video",
+    "video"
   ],
   "repository": {
     "type": "git",
