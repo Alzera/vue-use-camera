@@ -190,7 +190,7 @@ export const getDevices = (constraints: MediaStreamConstraints) =>
   requestCameraPermission(constraints)
     .then(_ => navigator.mediaDevices.enumerateDevices())
     .then(ds => {
-      // ds = ds.filter(({ kind }) => kind === 'videoinput')
+      ds = ds.filter(({ kind }) => kind === 'videoinput')
 
       if (typeof constraints.video === 'object' && typeof constraints.video.facingMode === 'string') {
         const pattern = constraints.video.facingMode === 'user' 
