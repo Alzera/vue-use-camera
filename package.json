@@ -1,6 +1,6 @@
 {
   "name": "@alzera/vue-use-camera",
-  "private": true,
+  "private": false,
   "version": "1.0.0",
   "description": "Camera composable for Vue apps",
   "license": "MIT",
@@ -11,12 +11,12 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Alzera/vue-scanner.git"
+    "url": "git+https://github.com/Alzera/vue-use-camera.git"
   },
   "bugs": {
-    "url": "https://github.com/Alzera/vue-scanner/issues"
+    "url": "https://github.com/Alzera/vue-use-camera/issues"
   },
-  "homepage": "https://github.com/Alzera/vue-scanner#readme",
+  "homepage": "https://github.com/Alzera/vue-use-camera#readme",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

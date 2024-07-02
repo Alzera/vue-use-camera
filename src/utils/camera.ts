@@ -7,8 +7,17 @@ declare global {
   interface MediaTrackConstraintSet { torch?: ConstrainBoolean }
 }
 
+/**
+ * Camera state
+ */
 export type CameraState = 'starting' | 'display' | 'stopping' | 'idle'
 
+/**
+ * Wait for video to be ready
+ * @param video <video /> element
+ * @param delay delay in milliseconds
+ * @returns Promise that resolves when video is ready
+ */
 const videoReady = (video: HTMLVideoElement, delay: number) => new Promise((resolve) => {
   const check = () => {
     if (video.readyState === video.HAVE_ENOUGH_DATA) {
@@ -18,6 +27,11 @@ const videoReady = (video: HTMLVideoElement, delay: number) => new Promise((reso
   setTimeout(check, delay)
 })
 
+/**
+ * Request camera permission
+ * @param constraints <video /> constraints
+ * @returns Promise that resolves when camera permission is granted and throws an error if permission is denied
+ */
 const requestCameraPermission = async (constraints: MediaStreamConstraints) => {
   if (!navigator.mozGetUserMedia) {
     const permissionStatus = await navigator.permissions
@@ -28,6 +42,9 @@ const requestCameraPermission = async (constraints: MediaStreamConstraints) => {
   await getUserMedia(constraints).then(s => s.getTracks().forEach(i => i.stop()))
 }
 
+/**
+ * Environment camera keywords
+ */
 const environmentCameraKeywords: string[] = [
   "rear",
   "back",
@@ -68,14 +85,27 @@ const environmentCameraKeywords: string[] = [
   "belakang",
   "बैक"
 ];
+
+/**
+ * Check if a camera label is an environment camera
+ * @param label camera label
+ * @returns true if the camera label is an environment camera
+ */
 function isEnvironmentCamera(label: string): boolean {
-  const lowercaseLabel: string = label.toLowerCase();
+  const lowercaseLabel = label.toLowerCase();
 
   return environmentCameraKeywords.some(keyword => {
     return lowercaseLabel.includes(keyword);
   });
 }
 
+/**
+ * Attach stream to video element and get capabilities
+ * @param video <video /> element
+ * @param stream stream of camera device
+ * @param info device info
+ * @returns Promise that resolves when stream is properly handled and returns camera capabilities
+ */
 export const handleStream = async (
   video: HTMLVideoElement,
   stream: MediaStream,
@@ -112,6 +142,12 @@ export const handleStream = async (
   return track?.getCapabilities?.() ?? {}
 }
 
+/**
+ * Release stream
+ * @param video <video /> element
+ * @param stream stream of camera device
+ * @returns Promise that resolves when stream is properly released
+ */
 export const releaseStream = async (
   video: HTMLVideoElement | undefined,
   stream: MediaStream | null,
@@ -132,17 +168,29 @@ export const releaseStream = async (
 }
 
 const defaultConstraints = { video: true, audio: false }
+
+/**
+ * Wrapper around navigator.mediaDevices.getUserMedia
+ * @param constraints constraints for getUserMedia
+ * @param deviceId device id
+ * @returns Promise that resolves when camera is ready
+ */
 export const getUserMedia = (constraints: MediaStreamConstraints, deviceId?: string) => {
   const c = { ...defaultConstraints, ...constraints } as MediaStreamConstraints;
   if (deviceId) c.video = { deviceId }
   return navigator.mediaDevices.getUserMedia(c)
 }
 
+/**
+ * Get camera devices
+ * @param constraints constraints for getUserMedia
+ * @returns Promise that resolves when camera devices are ready
+ */
 export const getDevices = (constraints: MediaStreamConstraints) =>
   requestCameraPermission(constraints)
     .then(_ => navigator.mediaDevices.enumerateDevices())
     .then(ds => {
-      ds = ds.filter(({ kind }) => kind === 'videoinput')
+      // ds = ds.filter(({ kind }) => kind === 'videoinput')
 
       if (typeof constraints.video === 'object' && typeof constraints.video.facingMode === 'string') {
         const pattern = constraints.video.facingMode === 'user' 
@@ -154,6 +202,12 @@ export const getDevices = (constraints: MediaStreamConstraints) =>
       return ds
     })
 
+/**
+ * Toggle camera torch
+ * @param stream stream of camera device
+ * @param target new torch state
+ * @returns Promise that resolves when constraints are applied
+ */
 export const toggleTorch = async (stream: MediaStream | null, target: boolean) => {
   if (!stream) return
 

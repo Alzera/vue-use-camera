@@ -1,6 +1,9 @@
 import { ref, watch } from "vue";
 import { type CameraController } from "./use-camera";
 
+/**
+ * Take video object
+ */
 export type UseTakeVideo = {
   readonly state: RecordingState;
   start(): void;
@@ -9,6 +12,12 @@ export type UseTakeVideo = {
   stop(): Promise<Blob | undefined>;
 }
 
+/**
+ * Take video hook
+ * @param controller camera controller object
+ * @param mime mime type of the result video
+ * @returns Take video object
+ */
 export const useTakeVideo = (controller: CameraController, mime = "video/webm"): UseTakeVideo => {
   const recorder = ref<MediaRecorder>()
   const state = ref<RecordingState>('inactive')

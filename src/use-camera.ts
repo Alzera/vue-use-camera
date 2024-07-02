@@ -2,6 +2,9 @@ import { type Ref, onMounted, onUnmounted, ref, watch } from "vue";
 import { type CameraState, releaseStream, handleStream, getDevices, getUserMedia, toggleTorch } from "./utils/camera"
 import { useDocumentVisibility, useLocalStorage } from "@vueuse/core";
 
+/**
+ * Camera controller object
+ */
 export type CameraController = {
   readonly video: Ref<HTMLVideoElement | undefined>;
   readonly camera: {
@@ -17,6 +20,15 @@ export type CameraController = {
   };
 }
 
+/**
+ * Camera hook
+ * @param onError callback to be called when an error occurs
+ * @param useLastDeviceId use last device id functionality
+ * @param autoStart auto start camera when mounted
+ * @param autoPause auto pause camera when user leaves the page
+ * @param constraints constraints for getUserMedia
+ * @returns Camera controller object
+ */
 export const useCamera = ({
   onError = console.error,
   useLastDeviceId = true,
@@ -43,7 +55,7 @@ export const useCamera = ({
   const capabilities = ref<MediaTrackCapabilities>()
   const cameraState = ref<CameraState>("idle")
   const devices = ref<MediaDeviceInfo[]>([])
-  const selectedDevice = ref<MediaDeviceInfo | undefined>();
+  const selectedDevice = ref<MediaDeviceInfo>();
   const lastDeviceId = useLocalStorage<string>("last-device-id", null)
 
   const error = async (e: any) => {
